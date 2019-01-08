@@ -2,7 +2,6 @@ package nl.ru.convert;
 
 
 import junit.framework.JUnit4TestAdapter;
-
 import org.junit.Test;
 
 public class ConvertTest {
@@ -11,7 +10,6 @@ public class ConvertTest {
     public void convert() {
         Args args = new Args();
         args.index = "../tiger";
-        Convert convert = new Convert(args);
     }
 
     public static junit.framework.Test suite() {
