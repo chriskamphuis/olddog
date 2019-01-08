@@ -11,7 +11,5 @@ class Pair<T, U> {
     }
 
     T getFirst() { return first; }
-    U getSecond() {
-        return second;
-    }
+    U getSecond() { return second; }
 }

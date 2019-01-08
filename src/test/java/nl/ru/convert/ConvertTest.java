@@ -12,7 +12,5 @@ public class ConvertTest {
         args.index = "../tiger";
     }
 
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(ConvertTest.class);
-    }
+    public static junit.framework.Test suite() { return new JUnit4TestAdapter(ConvertTest.class); }
 }

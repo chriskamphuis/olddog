@@ -1,6 +1,6 @@
 package nl.ru.convert;
 
-public class Triple<T, U, V> {
+class Triple<T, U, V> {
 
     private final T first;
     private final U second;
@@ -12,7 +12,7 @@ public class Triple<T, U, V> {
         this.third = third;
     }
 
-    public T getFirst() { return first; }
-    public U getSecond() { return second; }
-    public V getThird() { return third; }
+    T getFirst() { return first; }
+    U getSecond() { return second; }
+    V getThird() { return third; }
 }
