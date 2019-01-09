@@ -14,15 +14,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Convert {
 
     // Variable names according to the Old Dogs paper
-    private HashMap<Integer, Integer> docs;
     private HashMap<Integer, Pair<String, Integer>> dict;
-    private ArrayList<Triple<Integer, Integer, Integer>> terms;
 
     private Convert(Args args) throws IOException {
 
@@ -31,9 +28,14 @@ public class Convert {
             throw new IllegalArgumentException(args.index + " does not exist or is not a directory.");
         }
 
-        this.docs = new HashMap<>();
+        BufferedWriter docsDocIdWriter = new BufferedWriter(new FileWriter(args.docs + "_docID"));
+        BufferedWriter lenWriter = new BufferedWriter(new FileWriter(args.docs + "_len"));
+
+        BufferedWriter termIdWriter = new BufferedWriter(new FileWriter(args.terms + "_termID"));
+        BufferedWriter termsDocIDWriter = new BufferedWriter(new FileWriter(args.terms + "_docID"));
+        BufferedWriter countWriter = new BufferedWriter(new FileWriter(args.terms+ "_count"));
+
         this.dict = new HashMap<>();
-        this.terms = new ArrayList<>();
 
         IndexReader reader;
         if (args.inmem) {
@@ -49,11 +51,9 @@ public class Convert {
             Terms termsVector = reader.getTermVector(i, "contents");
             reader.document(i);
             TermsEnum termsEnum = termsVector.iterator();
-            this.docs.put(i, 0);
+            int j = 0;
             while (termsEnum.next() != null) {
                 PostingsEnum postings = termsEnum.postings(null, PostingsEnum.ALL);
-
-                this.docs.put(i, this.docs.get(i) + 1);
                 String termString = termsEnum.term().utf8ToString();
                 int termId;
                 if (termIdMap.get(termString) == null) {
@@ -70,31 +70,27 @@ public class Convert {
                     this.dict.put(termId, new Pair<>(termString, value + 1));
                 }
                 while(postings.nextDoc() != PostingsEnum.NO_MORE_DOCS){
-                    int count = postings.freq();
-                    Triple<Integer, Integer, Integer> row = new Triple<>(termId, i, count);
-                    terms.add(row);
+                    termIdWriter.write(termId);
+                    termsDocIDWriter.write(i);
+                    countWriter.write(postings.freq());
                 }
+                j++;
             }
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private void writeDocsToFile(String filename) throws IOException {
-        String filenameDocId = filename + "_docID";
-        String filenameLen = filename + "_len";
-
-        BufferedWriter docIdWriter = new BufferedWriter(new FileWriter(filenameDocId));
-        BufferedWriter lenWriter = new BufferedWriter(new FileWriter(filenameLen));
-
-        for (int key : this.docs.keySet()) {
-            docIdWriter.write(key);
-            lenWriter.write(this.docs.get(key));
+            docsDocIdWriter.write(i);
+            lenWriter.write(j);
         }
 
-        docIdWriter.flush();
-        docIdWriter.close();
+        docsDocIdWriter.flush();
         lenWriter.flush();
+        termIdWriter.flush();
+        termsDocIDWriter.flush();
+        countWriter.flush();
+
+        docsDocIdWriter.close();
         lenWriter.close();
+        termIdWriter.close();
+        termsDocIDWriter.close();
+        countWriter.close();
     }
 
     @SuppressWarnings("Duplicates")
@@ -118,26 +114,6 @@ public class Convert {
         dfWriter.close();
     }
 
-    @SuppressWarnings("Duplicates")
-    private void writeTermsToFile(String filename) throws IOException{
-        BufferedWriter termIdWriter = new BufferedWriter(new FileWriter(filename + "_termID"));
-        BufferedWriter docIDWriter = new BufferedWriter(new FileWriter(filename + "_docID"));
-        BufferedWriter countWriter = new BufferedWriter(new FileWriter(filename+ "_count"));
-
-        for (Triple value : this.terms) {
-            termIdWriter.write((int) value.getFirst());
-            docIDWriter.write((int) value.getSecond());
-            countWriter.write((int) value.getThird());
-        }
-
-        termIdWriter.flush();
-        termIdWriter.close();
-        docIDWriter.flush();
-        docIDWriter.close();
-        countWriter.flush();
-        countWriter.close();
-    }
-
     public static void main(String[] args) throws IOException {
         Args convertArgs = new Args();
         CmdLineParser parser = new CmdLineParser(convertArgs, ParserProperties.defaults().withUsageWidth(90));
@@ -150,8 +126,6 @@ public class Convert {
             return;
         }
         Convert convert = new Convert(convertArgs);
-        convert.writeDocsToFile(convertArgs.docs);
         convert.writeDictToFile(convertArgs.dict);
-        convert.writeTermsToFile(convertArgs.terms);
     }
 }
