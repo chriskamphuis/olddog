@@ -9,6 +9,7 @@ import org.kohsuke.args4j.OptionHandlerFilter;
 import org.kohsuke.args4j.ParserProperties;
 
 import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +19,6 @@ import java.util.HashMap;
 
 public class Convert {
 
-    // Variable names according to the Old Dogs paper
     private HashMap<Integer, Pair<String, Integer>> dict;
 
     private Convert(Args args) throws IOException {
@@ -28,12 +28,12 @@ public class Convert {
             throw new IllegalArgumentException(args.index + " does not exist or is not a directory.");
         }
 
-        BufferedWriter docsDocIdWriter = new BufferedWriter(new FileWriter(args.docs + "_docID"));
-        BufferedWriter lenWriter = new BufferedWriter(new FileWriter(args.docs + "_len"));
+        FileOutputStream docsDocIdWriter = new FileOutputStream(args.docs + "_docID");
+        FileOutputStream lenWriter = new FileOutputStream(args.docs + "_len");
 
-        BufferedWriter termIdWriter = new BufferedWriter(new FileWriter(args.terms + "_termID"));
-        BufferedWriter termsDocIDWriter = new BufferedWriter(new FileWriter(args.terms + "_docID"));
-        BufferedWriter countWriter = new BufferedWriter(new FileWriter(args.terms+ "_count"));
+        FileOutputStream termIdWriter = new FileOutputStream(args.terms + "_termID");
+        FileOutputStream termsDocIDWriter = new FileOutputStream(args.terms + "_docID");
+        FileOutputStream countWriter = new FileOutputStream(args.terms+ "_count");
 
         this.dict = new HashMap<>();
 
@@ -93,24 +93,25 @@ public class Convert {
         countWriter.close();
     }
 
-    @SuppressWarnings("Duplicates")
     private void writeDictToFile(String filename) throws IOException {
-        BufferedWriter termIdWriter = new BufferedWriter(new FileWriter(filename + "_termID"));
+        FileOutputStream termIdWriter = new FileOutputStream(filename + "_termID");
         BufferedWriter termWriter = new BufferedWriter(new FileWriter(filename + "_term"));
-        BufferedWriter dfWriter = new BufferedWriter(new FileWriter(filename+ "_df"));
+        FileOutputStream dfWriter = new FileOutputStream(filename+ "_df");
 
         for (Integer key : this.dict.keySet()) {
             Pair value = this.dict.get(key);
             termIdWriter.write(key);
-            termWriter.write(value.getFirst().toString()+'\n');
+            termWriter.write(value.getFirst().toString());
+            termWriter.newLine();
             dfWriter.write((int) value.getSecond());
         }
 
         termIdWriter.flush();
-        termIdWriter.close();
         termWriter.flush();
-        termWriter.close();
         dfWriter.flush();
+
+        termIdWriter.close();
+        termWriter.close();
         dfWriter.close();
     }
 
