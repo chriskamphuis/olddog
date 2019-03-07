@@ -12,7 +12,7 @@ mvn clean package appassembler:assemble
 _olddog_ takes a Lucene index as input, this can be created by for example [Anserini](https://github.com/castorini/Anserini). 
 For example, the Robust 04 collection can be indexed as explained on [this](https://github.com/castorini/Anserini/blob/master/docs/experiments-robust04.md) page.
 
-After creating the tables, the csv files representing the tables can be created issuing the following command:
+After creating the index, the csv files representing the tables can be created issuing the following command:
 
 `
 nohup target/appassembler/bin/nl.ru.convert.Convert -index path/to/index -docs /tmp/docs.csv -dict /tmp/dict.csv -terms /tmp/terms.csv
