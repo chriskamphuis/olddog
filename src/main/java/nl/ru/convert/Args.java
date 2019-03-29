@@ -19,4 +19,7 @@ class Args {
     // optional arguments
     @Option(name = "-inmem", usage = "Boolean switch to read index in memory")
     Boolean inmem = false;
+
+    @Option(name = "-pos", usage = "Return positions instead of sums")
+    Boolean pos = false;
 }

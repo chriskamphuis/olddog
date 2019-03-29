@@ -8,18 +8,13 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.OptionHandlerFilter;
 import org.kohsuke.args4j.ParserProperties;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.List;
 
 public class Convert {
-
-    private HashMap<Integer, Pair<String, Integer>> dict;
 
     private Convert(Args args) throws IOException {
 
@@ -31,11 +26,13 @@ public class Convert {
         FileOutputStream docsDocIdWriter = new FileOutputStream(args.docs + "_docID");
         FileOutputStream lenWriter = new FileOutputStream(args.docs + "_len");
 
-        FileOutputStream termIdWriter = new FileOutputStream(args.terms + "_termID");
+        FileOutputStream termsTermIdWriter = new FileOutputStream(args.terms + "_termID");
         FileOutputStream termsDocIDWriter = new FileOutputStream(args.terms + "_docID");
-        FileOutputStream countWriter = new FileOutputStream(args.terms+ "_count");
+        FileOutputStream termsPosCountWriter = new FileOutputStream(args.terms+ "_count");
 
-        this.dict = new HashMap<>();
+        FileOutputStream dictTermIdWriter = new FileOutputStream(args.dict + "_termID");
+        BufferedWriter dictTermWriter = new BufferedWriter(new FileWriter(args.dict + "_term"));
+        FileOutputStream dictDfWriter = new FileOutputStream(args.dict+ "_df");
 
         IndexReader reader;
         if (args.inmem) {
@@ -44,75 +41,66 @@ public class Convert {
             reader = DirectoryReader.open(FSDirectory.open(indexPath));
         }
 
-        int termIdTemp = 0;
-        HashMap<String, Integer> termIdMap = new HashMap<>();
+        List<LeafReaderContext> readers = reader.leaves();
 
-        for (int i = 0; i < reader.maxDoc(); i++) {
-            Terms termsVector = reader.getTermVector(i, "contents");
-            reader.document(i);
-            TermsEnum termsEnum = termsVector.iterator();
-            int j = 0;
-            while (termsEnum.next() != null) {
-                PostingsEnum postings = termsEnum.postings(null, PostingsEnum.ALL);
-                String termString = termsEnum.term().utf8ToString();
-                int termId;
-                if (termIdMap.get(termString) == null) {
-                    termId = termIdTemp;
-                    termIdTemp++;
-                } else {
-                    termId = termIdMap.get(termString);
-                }
-                termIdMap.put(termString, termId);
-                if (this.dict.get(termId) == null) {
-                    this.dict.put(termId, new Pair<>(termString, 1));
-                } else {
-                    int value = this.dict.get(termId).getSecond();
-                    this.dict.put(termId, new Pair<>(termString, value + 1));
-                }
-                while(postings.nextDoc() != PostingsEnum.NO_MORE_DOCS){
-                    termIdWriter.write(termId);
-                    termsDocIDWriter.write(i);
-                    countWriter.write(postings.freq());
-                }
-                j++;
-            }
+        if(readers.size() != 1) {
+            throw new RuntimeException("There should be only one leaf, index the collection using one writer");
+        }
+
+        for (int i=0; i < reader.maxDoc(); i++){
             docsDocIdWriter.write(i);
-            lenWriter.write(j);
+            lenWriter.write((int) reader.getTermVector(i, "contents").size());
+        }
+
+        for (LeafReaderContext lrc : readers) {
+            int termID = 1;
+            Terms terms = lrc.reader().terms("contents");
+            TermsEnum termsEnum = terms.iterator();
+            PostingsEnum postingsEnum = null;
+            while (termsEnum.next() != null) {
+                String term = termsEnum.term().utf8ToString();
+                int df = termsEnum.docFreq();
+
+                dictTermIdWriter.write(termID);
+                dictTermWriter.write(term);
+                dictTermWriter.newLine();
+                dictDfWriter.write(df);
+
+                postingsEnum = termsEnum.postings(postingsEnum, PostingsEnum.ALL);
+                while (postingsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
+                    if (args.pos) {
+                        for (int i = 0; i < postingsEnum.freq(); i++) {
+                            termsTermIdWriter.write(termID);
+                            termsDocIDWriter.write(postingsEnum.docID());
+                            termsPosCountWriter.write(postingsEnum.nextPosition());
+                        }
+                    } else {
+                        termsTermIdWriter.write(termID);
+                        termsDocIDWriter.write(postingsEnum.docID());
+                        termsPosCountWriter.write(postingsEnum.freq());
+                    }
+                }
+                termID += 1;
+            }
         }
 
         docsDocIdWriter.flush();
         lenWriter.flush();
-        termIdWriter.flush();
+        termsTermIdWriter.flush();
         termsDocIDWriter.flush();
-        countWriter.flush();
+        termsPosCountWriter.flush();
+        dictTermIdWriter.flush();
+        dictTermWriter.flush();
+        dictDfWriter.flush();
 
         docsDocIdWriter.close();
         lenWriter.close();
-        termIdWriter.close();
+        termsTermIdWriter.close();
         termsDocIDWriter.close();
-        countWriter.close();
-    }
-
-    private void writeDictToFile(String filename) throws IOException {
-        FileOutputStream termIdWriter = new FileOutputStream(filename + "_termID");
-        BufferedWriter termWriter = new BufferedWriter(new FileWriter(filename + "_term"));
-        FileOutputStream dfWriter = new FileOutputStream(filename+ "_df");
-
-        for (Integer key : this.dict.keySet()) {
-            Pair value = this.dict.get(key);
-            termIdWriter.write(key);
-            termWriter.write(value.getFirst().toString());
-            termWriter.newLine();
-            dfWriter.write((int) value.getSecond());
-        }
-
-        termIdWriter.flush();
-        termWriter.flush();
-        dfWriter.flush();
-
-        termIdWriter.close();
-        termWriter.close();
-        dfWriter.close();
+        termsPosCountWriter.close();
+        dictTermIdWriter.close();
+        dictTermWriter.close();
+        dictDfWriter.close();
     }
 
     public static void main(String[] args) throws IOException {
@@ -122,11 +110,10 @@ public class Convert {
             parser.parseArgument(args);
         } catch (CmdLineException e) {
             parser.printUsage(System.err);
-            System.err.println("Example: "+ Convert.class.getSimpleName() +
+            System.err.println("Example: " + Convert.class.getSimpleName() +
                     parser.printExample(OptionHandlerFilter.REQUIRED));
             return;
         }
-        Convert convert = new Convert(convertArgs);
-        convert.writeDictToFile(convertArgs.dict);
+        new Convert(convertArgs);
     }
 }
