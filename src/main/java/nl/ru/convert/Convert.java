@@ -23,16 +23,9 @@ public class Convert {
             throw new IllegalArgumentException(args.index + " does not exist or is not a directory.");
         }
 
-        FileOutputStream docsDocIdWriter = new FileOutputStream(args.docs + "_docID");
-        FileOutputStream lenWriter = new FileOutputStream(args.docs + "_len");
-
-        FileOutputStream termsTermIdWriter = new FileOutputStream(args.terms + "_termID");
-        FileOutputStream termsDocIDWriter = new FileOutputStream(args.terms + "_docID");
-        FileOutputStream termsPosCountWriter = new FileOutputStream(args.terms+ "_count");
-
-        FileOutputStream dictTermIdWriter = new FileOutputStream(args.dict + "_termID");
-        BufferedWriter dictTermWriter = new BufferedWriter(new FileWriter(args.dict + "_term"));
-        FileOutputStream dictDfWriter = new FileOutputStream(args.dict+ "_df");
+        BufferedWriter docsWriter = new BufferedWriter(new FileWriter(args.docs));
+        BufferedWriter termsWriter = new BufferedWriter(new FileWriter(args.terms));
+        BufferedWriter dictWriter = new BufferedWriter(new FileWriter(args.dict));
 
         IndexReader reader;
         if (args.inmem) {
@@ -48,8 +41,8 @@ public class Convert {
         }
 
         for (int i=0; i < reader.maxDoc(); i++){
-            docsDocIdWriter.write(i);
-            lenWriter.write((int) reader.getTermVector(i, "contents").size());
+            docsWriter.write(i + "|" + reader.getTermVector(i, "contents").size());
+            docsWriter.newLine();
         }
 
         for (LeafReaderContext lrc : readers) {
@@ -61,46 +54,32 @@ public class Convert {
                 String term = termsEnum.term().utf8ToString();
                 int df = termsEnum.docFreq();
 
-                dictTermIdWriter.write(termID);
-                dictTermWriter.write(term);
-                dictTermWriter.newLine();
-                dictDfWriter.write(df);
+                dictWriter.write(termID + "|" + term + "|" + df);
+                dictWriter.newLine();
 
                 postingsEnum = termsEnum.postings(postingsEnum, PostingsEnum.ALL);
                 while (postingsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
                     if (args.pos) {
                         for (int i = 0; i < postingsEnum.freq(); i++) {
-                            termsTermIdWriter.write(termID);
-                            termsDocIDWriter.write(postingsEnum.docID());
-                            termsPosCountWriter.write(postingsEnum.nextPosition());
+                            termsWriter.write(termID + "|" + postingsEnum.docID() + "|" + postingsEnum.nextPosition());
+                            termsWriter.newLine();
                         }
                     } else {
-                        termsTermIdWriter.write(termID);
-                        termsDocIDWriter.write(postingsEnum.docID());
-                        termsPosCountWriter.write(postingsEnum.freq());
+                        termsWriter.write(termID + "|" + postingsEnum.docID() + "|" + postingsEnum.freq());
+                        termsWriter.newLine();
                     }
                 }
                 termID += 1;
             }
         }
 
-        docsDocIdWriter.flush();
-        lenWriter.flush();
-        termsTermIdWriter.flush();
-        termsDocIDWriter.flush();
-        termsPosCountWriter.flush();
-        dictTermIdWriter.flush();
-        dictTermWriter.flush();
-        dictDfWriter.flush();
+        docsWriter.flush();
+        dictWriter.flush();
+        termsWriter.flush();
 
-        docsDocIdWriter.close();
-        lenWriter.close();
-        termsTermIdWriter.close();
-        termsDocIDWriter.close();
-        termsPosCountWriter.close();
-        dictTermIdWriter.close();
-        dictTermWriter.close();
-        dictDfWriter.close();
+        docsWriter.close();
+        dictWriter.close();
+        termsWriter.close();
     }
 
     public static void main(String[] args) throws IOException {
