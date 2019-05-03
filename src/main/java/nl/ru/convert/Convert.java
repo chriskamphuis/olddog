@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.HashMap;
 
 public class Convert {
 
@@ -40,8 +41,12 @@ public class Convert {
             throw new RuntimeException("There should be only one leaf, index the collection using one writer");
         }
 
+        HashMap<Integer, String> IDMapper = new HashMap<>();
+
         for (int i=0; i < reader.maxDoc(); i++){
-            docsWriter.write(i + "|" + reader.getTermVector(i, "contents").size());
+            String collectionDocumentID = reader.document(i).getField("id").stringValue();
+            IDMapper.put(i, collectionDocumentID);
+            docsWriter.write(collectionDocumentID + "|" + reader.getTermVector(i, "contents").size());
             docsWriter.newLine();
         }
 
@@ -59,13 +64,14 @@ public class Convert {
 
                 postingsEnum = termsEnum.postings(postingsEnum, PostingsEnum.ALL);
                 while (postingsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
+                    String collectionDocumentID = IDMapper.get(postingsEnum.docID());
                     if (args.pos) {
                         for (int i = 0; i < postingsEnum.freq(); i++) {
-                            termsWriter.write(termID + "|" + postingsEnum.docID() + "|" + postingsEnum.nextPosition());
+                            termsWriter.write(termID + "|" + collectionDocumentID + "|" + postingsEnum.nextPosition());
                             termsWriter.newLine();
                         }
                     } else {
-                        termsWriter.write(termID + "|" + postingsEnum.docID() + "|" + postingsEnum.freq());
+                        termsWriter.write(termID + "|" + collectionDocumentID + "|" + postingsEnum.freq());
                         termsWriter.newLine();
                     }
                 }
