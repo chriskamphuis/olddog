@@ -41,17 +41,14 @@ public class Convert {
             throw new RuntimeException("There should be only one leaf, index the collection using one writer");
         }
 
-        HashMap<Integer, String> IDMapper = new HashMap<>();
-
         for (int i=0; i < reader.maxDoc(); i++){
             String collectionDocumentID = reader.document(i).getField("id").stringValue();
-            IDMapper.put(i, collectionDocumentID);
-            docsWriter.write(collectionDocumentID + "|" + reader.getTermVector(i, "contents").size());
+            docsWriter.write(collectionDocumentID + "|" + i + "|" + reader.getTermVector(i, "contents").size());
             docsWriter.newLine();
         }
 
         for (LeafReaderContext lrc : readers) {
-            int termID = 1;
+            int termID = 0;
             Terms terms = lrc.reader().terms("contents");
             TermsEnum termsEnum = terms.iterator();
             PostingsEnum postingsEnum = null;
@@ -64,14 +61,14 @@ public class Convert {
 
                 postingsEnum = termsEnum.postings(postingsEnum, PostingsEnum.ALL);
                 while (postingsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
-                    String collectionDocumentID = IDMapper.get(postingsEnum.docID());
+                    int luceneID = postingsEnum.docID();
                     if (args.pos) {
                         for (int i = 0; i < postingsEnum.freq(); i++) {
-                            termsWriter.write(termID + "|" + collectionDocumentID + "|" + postingsEnum.nextPosition());
+                            termsWriter.write(termID + "|" + luceneID + "|" + postingsEnum.nextPosition());
                             termsWriter.newLine();
                         }
                     } else {
-                        termsWriter.write(termID + "|" + collectionDocumentID + "|" + postingsEnum.freq());
+                        termsWriter.write(termID + "|" + luceneID + "|" + postingsEnum.freq());
                         termsWriter.newLine();
                     }
                 }
