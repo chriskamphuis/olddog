@@ -55,8 +55,13 @@
                             <mainClass>nl.ru.convert.Convert</mainClass>
                             <id>nl.ru.convert.Convert</id>
                         </program>
+                        <program>
+                            <mainClass>nl.ru.preprocess.ProcessQuery</mainClass>
+                            <id>nl.ru.preprocess.ProcessQuery</id>
+                        </program>
                     </programs>
                 </configuration>
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
