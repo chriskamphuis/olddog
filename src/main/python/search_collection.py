@@ -7,7 +7,6 @@ import random
 import string
 from pymonetdb.control import Control
 from topic_reader import TopicReader
-from pprint import pprint
 
 class SearchCollection:
    

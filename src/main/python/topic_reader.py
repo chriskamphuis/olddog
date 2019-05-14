@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import nltk
 import subprocess
 
 class TopicReader:
