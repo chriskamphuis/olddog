@@ -38,7 +38,7 @@ class SearchCollection:
             query_terms = topic['title'].split(" ")
             ids = [] 
             for qterm in query_terms:
-                self.cursor.execute(f"SELECT termid FROM dict WHERE dict.term = '{qterm}'")
+                self.cursor.execute("SELECT termid FROM dict WHERE dict.term = '{}'".format(qterm))
                 term_id = self.cursor.fetchone()
                 if term_id:
                     ids.append(str(term_id[0]))
@@ -48,7 +48,7 @@ class SearchCollection:
             output = self.cursor.fetchall()
             for rank, row in enumerate(output):
                 collection_id, score = row
-                ofile.write(f"{topic['number']} Q0 {collection_id} {rank + 1} {score} olddog\n")
+                ofile.write("{} Q0 {} {} {} olddog\n".format(topic['number'], collection_id, rank+1, score))
 
     def getConnectionCursor(self):
         control = Control()
@@ -71,9 +71,9 @@ class SearchCollection:
         cursor.execute("CREATE TABLE terms (termid INT, docid INT, count INT)")
          
         print("LOAD DATA")
-        cursor.execute(f"COPY INTO docs FROM '{self.args.docs}'") 
-        cursor.execute(f"COPY INTO dict FROM '{self.args.dict}'")
-        cursor.execute(f"COPY INTO terms FROM '{self.args.terms}'")
+        cursor.execute("COPY INTO docs FROM '{}'".format(self.args.docs)) 
+        cursor.execute("COPY INTO dict FROM '{}'".format(self.args.dict))
+        cursor.execute("COPY INTO terms FROM '{}'".format(self.args.terms))
         
         print("DATA LOADED")  
         return cursor 
