@@ -50,7 +50,7 @@ class SearchCollection:
                 ofile.write("{} Q0 {} {} {} olddog\n".format(topic['number'], collection_id, rank+1, score))
 
     def getConnectionCursor(self):
-        control = Control()
+        control = Control(hostname='localhost')
         
         print("CREATE DATABASE") 
         dbname = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
