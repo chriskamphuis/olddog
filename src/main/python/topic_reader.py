@@ -59,7 +59,7 @@ class TopicReader:
     def _preprocess_titles(self):
         for i, topic in enumerate(self.topics):
             title = topic['title']
-            process = subprocess.Popen(f"""./target/appassembler/bin/nl.ru.preprocess.ProcessQuery {title}""".split(), stdout=subprocess.PIPE)
+            process = subprocess.Popen(f"""./olddog/target/appassembler/bin/nl.ru.preprocess.ProcessQuery {title}""".split(), stdout=subprocess.PIPE)
             stdout = process.communicate()[0].decode("utf-8").strip()
             self.topics[i]['title'] = stdout
 
