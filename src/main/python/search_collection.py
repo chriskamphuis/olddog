@@ -5,7 +5,6 @@ import sys
 import pymonetdb
 import random
 import string
-from pymonetdb.control import Control
 from topic_reader import TopicReader
 
 class SearchCollection:
@@ -50,12 +49,8 @@ class SearchCollection:
                 ofile.write("{} Q0 {} {} {} olddog\n".format(topic['number'], collection_id, rank+1, score))
 
     def getConnectionCursor(self):
-        control = Control()
-        
         print("CREATE DATABASE") 
-        dbname = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        control.create(dbname)
-        control.release(dbname) 
+        dbname = 'robust04'
         
         print("CREATE CONNECTION")
         connection = pymonetdb.connect(username='monetdb',
