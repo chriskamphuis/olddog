@@ -58,25 +58,10 @@ class SearchCollection:
                                        hostname='localhost', 
                                        database=dbname)
         cursor = connection.cursor()
-        
-        print("CREATE TABLES")
-        cursor.execute("CREATE TABLE docs (collection_id STRING, id INT, len INT)") 
-        cursor.execute("CREATE TABLE dict (termid INT, term STRING, df INT)")
-        cursor.execute("CREATE TABLE terms (termid INT, docid INT, count INT)")
-         
-        print("LOAD DATA")
-        cursor.execute("COPY INTO docs FROM '{}'".format(self.args.docs)) 
-        cursor.execute("COPY INTO dict FROM '{}'".format(self.args.dict))
-        cursor.execute("COPY INTO terms FROM '{}'".format(self.args.terms))
-        
-        print("DATA LOADED")  
         return cursor 
 
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--terms', required=True, help='Path of terms file')
-        parser.add_argument('--dict', required=True, help='Path of dict file')
-        parser.add_argument('--docs', required=True, help='Path of docs file')
         parser.add_argument('--filename', required=True, help='Topics file')
         parser.add_argument('--output', required=True, help='filename for output')
         self.args = parser.parse_args()
