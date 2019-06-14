@@ -6,6 +6,7 @@ import pymonetdb
 import random
 import string
 from topic_reader import TopicReader
+import time
 
 class SearchCollection:
    
@@ -52,11 +53,19 @@ class SearchCollection:
         print("CREATE DATABASE") 
         dbname = 'robust04'
         
-        print("CREATE CONNECTION")
-        connection = pymonetdb.connect(username='monetdb',
-                                       password='monetdb',
-                                       hostname='localhost', 
-                                       database=dbname)
+        connection = None 
+        attempt = 0
+        while connection is None or attempt > 20:
+            print("CREATE CONNECTION")
+            try:
+                connection = pymonetdb.connect(username='monetdb',
+                                               password='monetdb',
+                                               hostname='localhost', 
+                                               database=dbname)
+            except:
+                attempt += 1
+                time.sleep(5) 
+
         cursor = connection.cursor()
         return cursor 
 
