@@ -30,7 +30,7 @@ class SearchCollection:
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
             conjunctive = ''
-        queryTemplate.join('{}', conjunctive)
+        queryTemplate.format('{}', conjunctive)
         return queryTemplate
 
     def search(self):
