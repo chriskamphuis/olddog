@@ -50,7 +50,6 @@ class SearchCollection:
                 sql_query = self.getQueryTemplate().format(term_ids)
             else:
                 sql_query = self.getQueryTemplate().format(term_ids, len(ids))
-            print(sql_query)
             self.cursor.execute(sql_query)
             output = self.cursor.fetchall()
             for rank, row in enumerate(output):
