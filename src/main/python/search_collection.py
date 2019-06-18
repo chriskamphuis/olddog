@@ -48,7 +48,7 @@ class SearchCollection:
             term_ids = ", ".join(ids)
             if self.args.disjunctive:
                 sql_query = self.getQueryTemplate().format(term_ids)
-            else
+            else:
                 sql_query = self.getQueryTemplate().format(term_ids, len(ids))
             print(sql_query)
             self.cursor.execute(sql_query)
