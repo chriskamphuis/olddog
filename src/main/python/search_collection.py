@@ -30,7 +30,7 @@ class SearchCollection:
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
             conjunctive = ''
-        queryTemplate.format('{}', conjunctive)
+        queryTemplate = queryTemplate.format('{}', conjunctive)
         return queryTemplate
 
     def search(self):
@@ -46,7 +46,10 @@ class SearchCollection:
                 if term_id:
                     ids.append(str(term_id[0]))
             term_ids = ", ".join(ids)
-            sql_query = self.getQueryTemplate().format(term_ids, len(ids))
+            if self.args.disjunctive:
+                sql_query = self.getQueryTemplate().format(term_ids)
+            else:
+                sql_query = self.getQueryTemplate().format(term_ids, len(ids))
             self.cursor.execute(sql_query)
             output = self.cursor.fetchall()
             for rank, row in enumerate(output):
