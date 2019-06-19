@@ -58,7 +58,7 @@ class SearchCollection:
 
     def getConnectionCursor(self):
         print("CREATE DATABASE") 
-        dbname = 'robust04'
+        dbname = self.args.collection
         
         connection = None 
         attempt = 0
@@ -80,6 +80,7 @@ class SearchCollection:
         parser = argparse.ArgumentParser()
         parser.add_argument('--filename', required=True, help='Topics file')
         parser.add_argument('--output', required=True, help='filename for output')
+        parser.add_argument('--collection', required=True, help='collection name')
         parser.add_argument('--disjunctive', required=False, action='store_true', help='disjunctive processing instead of conjunctive')
         self.args = parser.parse_args()
         self.cursor = self.getConnectionCursor()
