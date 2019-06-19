@@ -10,13 +10,13 @@ import time
 
 class SearchCollection:
    
-    def getQueryTemplate(self):
+    def getQueryTemplate(self, collection_size, avg_doc_len):
         queryTemplate =  """
             WITH qterms AS (SELECT termid, docid, count FROM terms 
                 WHERE termid IN ({})), 
                 subscores AS (SELECT docs.collection_id, docs.id, len, term_tf.termid, 
-                term_tf.tf, df, (log((528155-df+0.5)/(df+0.5))*((term_tf.tf*(1.2+1)/
-                (term_tf.tf+1.2*(1-0.75+0.75*(len/188.33)))))) AS subscore 
+                term_tf.tf, df, (log(({}-df+0.5)/(df+0.5))*((term_tf.tf*(1.2+1)/
+                (term_tf.tf+1.2*(1-0.75+0.75*(len/{})))))) AS subscore
                 FROM (SELECT termid, docid, count as tf FROM qterms) AS term_tf 
                 JOIN (SELECT docid FROM qterms
                     GROUP BY docid {})
@@ -30,13 +30,20 @@ class SearchCollection:
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
             conjunctive = ''
-        queryTemplate = queryTemplate.format('{}', conjunctive)
+        queryTemplate = queryTemplate.format('{}', collection_size, avg_doc_len, conjunctive)
         return queryTemplate
 
     def search(self):
         topics = self.topicReader.get_topics()
         ofile = open(self.args.output, 'w+')
         print("SCORING TOPICS")
+
+        self.cursor.execute("SELECT COUNT(*) FROM docs;")
+        collection_size = self.cursor.fetchone()[0]
+
+        self.cursor.execute("SELECT ROUND(AVG(len), 2) FROM docs;")
+        avg_doc_len = self.cursor.fetchone()[0]
+
         for topic in topics:
             query_terms = topic['title'].split(" ")
             ids = [] 
@@ -47,9 +54,9 @@ class SearchCollection:
                     ids.append(str(term_id[0]))
             term_ids = ", ".join(ids)
             if self.args.disjunctive:
-                sql_query = self.getQueryTemplate().format(term_ids)
+                sql_query = self.getQueryTemplate(collection_size, avg_doc_len).format(term_ids)
             else:
-                sql_query = self.getQueryTemplate().format(term_ids, len(ids))
+                sql_query = self.getQueryTemplate(collection_size, avg_doc_len).format(term_ids, len(ids))
             self.cursor.execute(sql_query)
             output = self.cursor.fetchall()
             for rank, row in enumerate(output):
