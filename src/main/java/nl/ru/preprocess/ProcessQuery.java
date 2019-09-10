@@ -1,13 +1,11 @@
 package nl.ru.preprocess;
 
 import org.apache.lucene.analysis.*;
-import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
-import org.apache.lucene.analysis.en.PorterStemFilter;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardFilter;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,19 +19,19 @@ public class ProcessQuery {
         }
 
         List<String> result = new ArrayList<>();
-        Analyzer analyzer = new StandardAnalyzer();
-        TokenStream tokenStream = analyzer.tokenStream("", query.toString());
-        tokenStream = new StandardFilter(tokenStream);
-        tokenStream = new EnglishPossessiveFilter(tokenStream);
-        tokenStream = new LowerCaseFilter(tokenStream);
-        tokenStream = new StopFilter(tokenStream, StandardAnalyzer.STOP_WORDS_SET);
-        tokenStream = new PorterStemFilter(tokenStream);
+        Analyzer analyzer = new EnglishStemmingAnalyzer("porter", EnglishAnalyzer.ENGLISH_STOP_WORDS_SET);
 
-        CharTermAttribute attr = tokenStream.addAttribute(CharTermAttribute.class);
+        TokenStream tokenStream = analyzer.tokenStream(null, new StringReader(query.toString()));
+        CharTermAttribute cattr = tokenStream.addAttribute(CharTermAttribute.class);
+
         tokenStream.reset();
         while(tokenStream.incrementToken()) {
-            result.add(attr.toString());
+          if (cattr.toString().length() == 0) {
+            continue;
+          }
+          result.add(cattr.toString());
         }
+        tokenStream.end();
         tokenStream.close();
 
         StringBuilder pro = new StringBuilder();
