@@ -15,17 +15,17 @@ class SearchCollection:
             WITH qterms AS (SELECT termid, docid, count FROM terms 
                 WHERE termid IN ({})), 
                 subscores AS (SELECT docs.collection_id, docs.id, len, term_tf.termid, 
-                term_tf.tf, df, (log(({}-df+0.5)/(df+0.5))*((term_tf.tf*(1.2+1)/
-                (term_tf.tf+1.2*(1-0.75+0.75*(len/{})))))) AS subscore
+                term_tf.tf, df, (log(1 + ({}.000000-df+0.5)/(df+0.5))*((term_tf.tf/
+                (term_tf.tf+0.9*(1-0.4+0.4*(len/{})))))) AS subscore
                 FROM (SELECT termid, docid, count as tf FROM qterms) AS term_tf 
                 JOIN (SELECT docid FROM qterms
                     GROUP BY docid {})
                     AS cdocs ON term_tf.docid = cdocs.docid 
                 JOIN docs ON term_tf.docid = docs.id
                 JOIN dict ON term_tf.termid = dict.termid)
-            SELECT scores.collection_id, score FROM (SELECT collection_id, sum(subscore) AS score
+            SELECT scores.collection_id, ROUND(score, 6) FROM (SELECT collection_id, sum(subscore) AS score
                 FROM subscores GROUP BY collection_id) AS scores JOIN docs ON 
-                scores.collection_id=docs.collection_id ORDER BY score DESC;
+                scores.collection_id=docs.collection_id ORDER BY score DESC LIMIT 1000;
         """
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
@@ -41,7 +41,7 @@ class SearchCollection:
         self.cursor.execute("SELECT COUNT(*) FROM docs;")
         collection_size = self.cursor.fetchone()[0]
 
-        self.cursor.execute("SELECT ROUND(AVG(len), 2) FROM docs;")
+        self.cursor.execute("SELECT ROUND(AVG(len), 5) FROM docs;")
         avg_doc_len = self.cursor.fetchone()[0]
 
         for topic in topics:
