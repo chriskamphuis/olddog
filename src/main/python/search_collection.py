@@ -59,9 +59,19 @@ class SearchCollection:
                 sql_query = self.getQueryTemplate(collection_size, avg_doc_len).format(term_ids, len(ids))
             self.cursor.execute(sql_query)
             output = self.cursor.fetchall()
+            dup = 0 
+            last_score = 0
             for rank, row in enumerate(output):
                 collection_id, score = row
-                ofile.write("{} Q0 {} {} {} olddog\n".format(topic['number'], collection_id, rank+1, score))
+                if self.args.breakTies:
+                    score = round(score * 10**4)/10**4
+                    if rank == 0 or (last_score - score) > 10**(-4):
+                        dup = 0
+                    else:
+                        dup += 1
+                        score -= 10**(-6) * dup
+                    last_score = score
+                ofile.write("{} Q0 {} {} {:.6f} olddog\n".format(topic['number'], collection_id, rank+1, score))
 
     def getConnectionCursor(self):
         print("CREATE DATABASE") 
@@ -89,6 +99,7 @@ class SearchCollection:
         parser.add_argument('--output', required=True, help='filename for output')
         parser.add_argument('--collection', required=True, help='collection name')
         parser.add_argument('--disjunctive', required=False, action='store_true', help='disjunctive processing instead of conjunctive')
+        parser.add_argument('--breakTies', required=False, action='store_true', help='Force to break ties by permuting scores')
         self.args = parser.parse_args()
         self.cursor = self.getConnectionCursor()
         self.topicReader = TopicReader(self.args.filename)  
