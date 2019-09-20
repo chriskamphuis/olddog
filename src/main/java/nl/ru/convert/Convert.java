@@ -42,6 +42,11 @@ public class Convert {
 
         for (int i=0; i < reader.maxDoc(); i++){
             String collectionDocumentID = reader.document(i).getField("id").stringValue();
+            if(reader.getTermVector(i, "contents") == null){
+              docsWriter.write(collectionDocumentID + "|" + i + "|" + 0);
+              docsWriter.newLine();
+              continue;
+            }
             docsWriter.write(collectionDocumentID + "|" + i + "|" + reader.getTermVector(i, "contents").getSumTotalTermFreq());
             docsWriter.newLine();
         }

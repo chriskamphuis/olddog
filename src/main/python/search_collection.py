@@ -25,7 +25,7 @@ class SearchCollection:
                 JOIN dict ON term_tf.termid = dict.termid)
             SELECT scores.collection_id, ROUND(score, 6) FROM (SELECT collection_id, sum(subscore) AS score
                 FROM subscores GROUP BY collection_id) AS scores JOIN docs ON 
-                scores.collection_id=docs.collection_id ORDER BY score DESC LIMIT 1000;
+                scores.collection_id=docs.collection_id ORDER BY ROUND(score, 6) DESC, scores.collection_id ASC LIMIT 1000;
         """
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
@@ -38,10 +38,10 @@ class SearchCollection:
         ofile = open(self.args.output, 'w+')
         print("SCORING TOPICS")
 
-        self.cursor.execute("SELECT COUNT(*) FROM docs;")
+        self.cursor.execute("SELECT COUNT(*) FROM docs WHERE len > 0;")
         collection_size = self.cursor.fetchone()[0]
 
-        self.cursor.execute("SELECT ROUND(AVG(len), 5) FROM docs;")
+        self.cursor.execute("SELECT AVG(len) FROM docs WHERE len > 0;")
         avg_doc_len = self.cursor.fetchone()[0]
 
         for topic in topics:
