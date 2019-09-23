@@ -5,32 +5,18 @@ import sys
 import pymonetdb
 import random
 import string
-from topic_reader import TopicReader
 import time
+from topic_reader import TopicReader
+from variants import get_variant
 
 class SearchCollection:
    
     def getQueryTemplate(self, collection_size, avg_doc_len):
-        queryTemplate =  """
-            WITH qterms AS (SELECT termid, docid, count FROM terms 
-                WHERE termid IN ({})), 
-                subscores AS (SELECT docs.collection_id, docs.id, len, term_tf.termid, 
-                term_tf.tf, df, (log(1 + ({}.000000-df+0.5)/(df+0.5))*((term_tf.tf/
-                (term_tf.tf+0.9*(1-0.4+0.4*(len/{})))))) AS subscore
-                FROM (SELECT termid, docid, count as tf FROM qterms) AS term_tf 
-                JOIN (SELECT docid FROM qterms
-                    GROUP BY docid {})
-                    AS cdocs ON term_tf.docid = cdocs.docid 
-                JOIN docs ON term_tf.docid = docs.id
-                JOIN dict ON term_tf.termid = dict.termid)
-            SELECT scores.collection_id, ROUND(score, 6) FROM (SELECT collection_id, sum(subscore) AS score
-                FROM subscores GROUP BY collection_id) AS scores JOIN docs ON 
-                scores.collection_id=docs.collection_id ORDER BY ROUND(score, 6) DESC, scores.collection_id ASC LIMIT 1000;
-        """
+        queryTemplate = get_variant(self.args.variant, collection_size, avg_doc_len)
         conjunctive = 'HAVING COUNT(distinct termid) = {}'
         if self.args.disjunctive:
             conjunctive = ''
-        queryTemplate = queryTemplate.format('{}', collection_size, avg_doc_len, conjunctive)
+        queryTemplate = queryTemplate.format('{}', conjunctive)
         return queryTemplate
 
     def search(self):
@@ -98,6 +84,17 @@ class SearchCollection:
         parser.add_argument('--filename', required=True, help='Topics file')
         parser.add_argument('--output', required=True, help='filename for output')
         parser.add_argument('--collection', required=True, help='collection name')
+        parser.add_argument('--variant',
+                            required=True,
+                            choices=[
+                                        'bm25.robertson',
+                                        'bm25.anserini',
+                                        'bm25.anserini.accurate',
+                                        'bm25.atire',
+                                        'bm25.l',
+                                        'bm25.plus'
+                                    ]
+                           ) 
         parser.add_argument('--disjunctive', required=False, action='store_true', help='disjunctive processing instead of conjunctive')
         parser.add_argument('--breakTies', required=False, action='store_true', help='Force to break ties by permuting scores')
         self.args = parser.parse_args()
