@@ -92,7 +92,9 @@ class SearchCollection:
                                         'bm25.anserini.accurate',
                                         'bm25.atire',
                                         'bm25.l',
-                                        'bm25.plus'
+                                        'bm25.plus',
+                                        'bm25.adpt',
+                                        'tf.l.delta.p.idf'
                                     ]
                            ) 
         parser.add_argument('--disjunctive', required=False, action='store_true', help='disjunctive processing instead of conjunctive')

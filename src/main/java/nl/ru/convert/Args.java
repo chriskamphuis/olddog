@@ -20,6 +20,9 @@ class Args {
     @Option(name = "-inmem", usage = "Boolean switch to read index in memory")
     Boolean inmem = false;
 
+    @Option(name = "-adpt", usage = "Boolean switch to also get term specific k1 values")
+    Boolean adpt = false;
+
     @Option(name = "-pos", usage = "Return positions instead of sums")
     Boolean pos = false;
 }

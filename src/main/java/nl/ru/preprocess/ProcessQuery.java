@@ -26,10 +26,10 @@ public class ProcessQuery {
 
         tokenStream.reset();
         while(tokenStream.incrementToken()) {
-          if (cattr.toString().length() == 0) {
-            continue;
-          }
-          result.add(cattr.toString());
+            if (cattr.toString().length() == 0) {
+                continue;
+            }
+            result.add(cattr.toString());
         }
         tokenStream.end();
         tokenStream.close();
