@@ -2,34 +2,14 @@
 
 OldDog works fine with MonetDB installed from the standard repositories.
 
-For efficiency testing however, building MonetDB from source is the preferred route, for more control over specific settings.
-Thanks to Spinque's Roberto Cornacchia for some insightful information that resulted in this guide.
+For proper efficiency testing however, tuning the server is necessary. Many thanks to [Spinque](http://www.spinque.com) 
+and specifically Roberto Cornacchia for the insightful information that resulted in this guide.
 
-## Preliminaries
+## Building from source
 
-First, review the documentation by the MonetDB team on [compilation from source](https://www.monetdb.org/Developers/SourceCompile).
+Building MonetDB from source is the preferred route, for more control over specific settings.
 
-Download [the latest source release](https://www.monetdb.org/downloads/sources/Latest) and unpack the archive:
-
-    wget https://www.monetdb.org/downloads/sources/Apr2019-SP1/MonetDB-11.33.11.tar.xz
-    tar xvf MonetDB-11.33.11.tar.xz
-
-Install dependencies - only the first (`gettext`) is mandatory:
-
-    sudo dnf install gettext-devel
-    sudo dnf install readline-devel
-    sudo dnf install unixODBC-devel
-    sudo dnf install xz-devel lz4-devel snappy-devel
-    sudo dnf install libcurl-devel libxml2-devel 
-    sudo dnf install python3-devel python3-numpy R-devel
-    sudo dnf install proj-devel geos-devel liblas-devel cfitsio-devel samtools-devel
-
-Compile the release from source (add `--prefix=/path/to/install` for installing locally):
-
-    ./bootstrap
-    ./configure --disable-debug --disable-developer --disable-assert --enable-optimize
-    make -j
-    make install
+Especially on a system with `SELinux` enabled, this is non-trivial; best to follow [these instructions](monetdb-from-source.html).
 
 ## Performance Tuning
 
