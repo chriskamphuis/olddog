@@ -70,7 +70,7 @@ class SearchCollection:
             try:
                 connection = pymonetdb.connect(username='monetdb',
                                                password='monetdb',
-                                               hostname='localhost', 
+                                               port=50000, 
                                                database=dbname)
             except:
                 attempt += 1
