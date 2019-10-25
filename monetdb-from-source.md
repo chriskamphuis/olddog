@@ -39,6 +39,9 @@ Compile the release from source (add `--prefix=/path/to/install` for installing 
     ./configure --disable-debug --disable-developer --disable-assert --enable-optimize
     make -j
 
+Want to compile using `CLANG` instead of ` gcc`? Prepend prepend `CC=clang` to the `configure` command.
+Want to include python and exclude R: append `--disable-rintegration --enable-pyintegration`.
+
 Skip the usual `make install` and build the `rpm`-s instead - this includes an `rpm` that applies all the SELinux policies MonetDB needs.
 
     make rpm

@@ -75,14 +75,14 @@ BM25_PLUS = """
     (0.9*(1-0.4+0.4*((len)/({})))+term_tf.tf)+1.0))
 """
 
+BM25_ANSERINI = """
+    (log(1 + ({}.000000-df+0.5)/(df+0.5))*(term_tf.tf/
+    (term_tf.tf+precalc)))
+"""
+
 BM25_ANSERINI_ACCURATE = """
     (log(1 + ({}.000000-df+0.5)/(df+0.5))*(term_tf.tf/
     (term_tf.tf+0.9*(1-0.4+0.4*(len/{})))))
-"""
-
-BM25_ANSERINI = """
-    (log(1 + ({}.000000-df+0.5)/(df+0.5))*(term_tf.tf/
-    (term_tf.tf+0.9*(1-0.4+0.4*(shortlen/{})))))
 """
 
 BM25_ATIRE = """
@@ -94,7 +94,7 @@ def get_variant(variant, N, avgdl):
     if variant == 'bm25.robertson':
         return BM25_STANDARD_TEMPLATE.format('{}', BM25_ROBERTSON.format(N, avgdl), '{}')
     elif variant == 'bm25.anserini':
-        return BM25_SHORT_TEMPLATE.format('{}', BM25_ANSERINI_ACCURATE.format(N, avgdl), '{}')
+        return BM25_SHORT_TEMPLATE.format('{}', BM25_ANSERINI.format(N, avgdl), '{}')
     elif variant == 'bm25.anserini.accurate':
         return BM25_STANDARD_TEMPLATE.format('{}', BM25_ANSERINI_ACCURATE.format(N, avgdl), '{}')
     elif variant == 'bm25.atire':
