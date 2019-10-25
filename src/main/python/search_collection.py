@@ -3,6 +3,7 @@
 import argparse
 import sys
 import pymonetdb
+import duckdb
 import random
 import string
 import time
@@ -76,19 +77,22 @@ class SearchCollection:
                         ofile.write("{} Q0 {} {} {:.6f} olddog\n".format(topic['number'], collection_id, rank+1, score))
             loop -= 1
 
+
     def getConnectionCursor(self):
-        print("CREATE DATABASE") 
         dbname = self.args.collection
-        
         connection = None 
         attempt = 0
         while connection is None or attempt > 20:
             print("CREATE CONNECTION")
             try:
-                connection = pymonetdb.connect(username='monetdb',
-                                               password='monetdb',
-                                               hostname='localhost', 
-                                               database=dbname)
+                if self.args.engine == 'monetdb':
+
+                    connection = pymonetdb.connect(username='monetdb',
+                                                   password='monetdb',
+                                                   hostname='localhost', 
+                                                   database=dbname)
+                else:
+                    connection = duckdb.connect(dbname)
             except:
                 attempt += 1
                 time.sleep(5) 
@@ -117,6 +121,11 @@ class SearchCollection:
         parser.add_argument('--disjunctive', required=False, action='store_true', help='disjunctive processing instead of conjunctive')
         parser.add_argument('--breakTies', required=False, action='store_true', help='Force to break ties by permuting scores')
         parser.add_argument('--time', required=False, action='store_true', help='time the ranking')
+        parser.add_argument('--engine',
+                            required=False,
+                            choices=['monetdb', 'duckdb'],
+                            default='monetdb'
+                           )
         self.args = parser.parse_args()
         self.cursor = self.getConnectionCursor()
         self.topicReader = TopicReader(self.args.filename)  
