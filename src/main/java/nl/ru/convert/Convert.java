@@ -57,7 +57,7 @@ public class Convert {
             long length = reader.getTermVector(i, "contents").getSumTotalTermFreq();
             numDocs += 1;
             totalLength += length;
-            docsWriter.write(collectionDocumentID + "|" + i + "|" + length + "|" + SmallFloat.longToInt4(length));
+            docsWriter.write(collectionDocumentID + "|" + i + "|" + length + "|" + SmallFloat.byte4ToInt(SmallFloat.intToByte4((int) length)));
             docsWriter.newLine();
         }
         docsWriter.flush();
