@@ -7,12 +7,33 @@ class TopicReader:
     
     def __init__(self, topics_file_name):
         self.filename = topics_file_name
+        self.web = False
+        if 'web' in self.filename:
+            self.web = True 
         self.file = open(self.filename)
         self.topics = []
         print("Read topics...",flush=True)
-        self._read_topics_file()
+        if self.web:
+            self._read_web_topics_file()
+        else:
+            self._read_topics_file()
         print("Preprocess topics...",flush=True)
         self._preprocess_titles()
+
+    def _read_web_topics_file(self):
+        while True:
+            line = self.file.readline()
+            if not line:
+                break
+            line = line.strip()
+            line = line.split(':')
+            topic = {   
+                        'number' : line[0],
+                        'title' : line[1],
+                        'description' : '',
+                        'narrative' :  ''
+                    }
+            self.topics.append(topic)
 
     def _read_topics_file(self):
         while True:
