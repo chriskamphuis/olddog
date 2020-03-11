@@ -60,6 +60,10 @@
                             <id>nl.ru.convert.CiffToCsv</id>
                         </program>
                         <program>
+                            <mainClass>nl.ru.convert.CiffToTermsBulk</mainClass>
+                            <id>nl.ru.convert.CiffToTermsBulk</id>
+                        </program>
+                        <program>
                             <mainClass>nl.ru.preprocess.ProcessQuery</mainClass>
                             <id>nl.ru.preprocess.ProcessQuery</id>
                         </program>
