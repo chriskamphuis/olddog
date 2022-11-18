@@ -21,7 +21,7 @@ After creating the index, the CSV files representing the database tables can be 
 This creates multiple files that represent the columns of the `docs`, `dict` and `terms` tables as described in the blog post. 
 
 The column store relational database [MonetDB](https://www.monetdb.org) can load
-these files using the `COPY INTO` [command](https://www.monetdb.org/Documentation/Cookbooks/SQLrecipes/CSV_bulk_loads).
+these files using the `COPY INTO` [command](https://www.monetdb.org/documentation-Sep2022/user-guide/sql-manual/data-loading/export_data/).
 
 ## Usage
 
